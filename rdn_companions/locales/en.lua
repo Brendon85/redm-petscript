@@ -1,0 +1,17 @@
+Locales['en'] = {
+    NoMoney = 'Yeterli paranız yok',
+    Shoptext = 'Evcil Hayvanlar için satışı görmek için (E) tuşuna basın',
+    GiveAway = 'Evcil hayvanı hediye et',
+    ReleasePet = 'Evcil hayvanınızı serbest bıraktınız',
+    PetAway = 'Evcil hayvanınızı kenara koydunuz',
+    PetHealed = 'Evcil hayvanınız doktor tarafından iyileştirildi',
+    SpawnLimiter = 'Hayvan spawn süresi dolmuş durumda',
+    ReplacePet = 'Eski evcil hayvanınızı değiştirdiniz',
+    NewPet = 'Yeni bir evcil hayvan satın aldınız',
+    NoPet = 'Hiç evcil hayvanınız yok',
+    NoFood = 'Hiç evcil hayvan mamasınız yok',
+    NotHungry = 'Evcil hayvanınız aç değil',
+    Hungry = 'Evcil hayvanınız aç görünüyor',
+    PetDead = 'Evcil hayvanınız yaralandı ve iyileşmek için zaman gerekiyor!',
+    FedPet = 'Evcil hayvanınızı beslediniz!',    
+}
