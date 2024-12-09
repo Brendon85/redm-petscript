@@ -1,3 +1,10 @@
+RedEM = exports["redem_roleplay"]:RedEM()
+
+MenuData = {}
+TriggerEvent("redemrp_menu_base:getData", function(call)
+    MenuData = call
+end)
+
 -- Based on Malik's and Blue's animal shelters and vorp animal shelter, hunting/raising/tracking system added by HAL
 
 local keys = Config.Keys
@@ -131,6 +138,8 @@ local function checkAvailability(pet)
 
 end
 
+
+--[[
 Citizen.CreateThread(function()
 	WarMenu.CreateMenu('id_dog', '')
 	repeat
@@ -156,42 +165,67 @@ Citizen.CreateThread(function()
 		Citizen.Wait(0)
 	until false
 end)
+--]]
+
+function redempetmenu(shop, IdZone)
+	MenuData.CloseAll()
+	local elements = {}
+	for i = 1, #pets do
+		local acheck = checkAvailability(pets[i])
+		if acheck == true then
+			elements[#elements + 1] = {
+				label = pets[i]['Text'],
+				value = pets[i]['Param'],
+				desc = pets[i]['Desc']
+			}
+		end
+	end
+	MenuData.Open('default', GetCurrentResourceName(), 'id_dog', {
+		title    = _U('PetShop'),
+		subtext  = _U('Shoptext'),
+		align    = 'top-right',
+		elements = elements
+	}, function(data)
+		TriggerServerEvent('rdn_companions:buydog', data.current.value)
+	end, function(data, menu)
+		menu.close()
+	end)
+
+end
 
 Citizen.CreateThread(function()
+	local shopWaitTime = 500
 	while true do
-		waitTime = 500
 		for index, shop in pairs(Config.Shops) do
-			local IsZone, IdZone = IsNearZone( shop.Coords, shop.ActiveDistance, shop.Ring )
-			-- Shop control and menu open
-			if IsZone then
-				waitTime = 1
-				DisplayHelp(_U('Shoptext'), 0.50, 0.95, 0.6, 0.6, true, 255, 255, 255, 255, true)
+			local isNearShop, shopId = IsNearZone(shop.Coords, shop.ActiveDistance, shop.Ring)
+			if isNearShop then
+				shopWaitTime = 1
+				--DisplayHelp(_U('Shoptext'), 0.50, 0.95, 0.6, 0.6, true, 255, 255, 255, 255, true)
+				TriggerEvent('redem_roleplay:Tip', _U('Shoptext'), 4000)
 				if IsControlJustPressed(0, keys[Config.TriggerKeys.OpenShop]) then
-					WarMenu.SetTitle('id_dog', shop.Name)
-					WarMenu.OpenMenu('id_dog')
+					redempetmenu(shop, shopId)
 					CurrentZoneActive = index
 				end
 			end
 		end
 
-
-		if Config.CallPetKey == true then
+		if Config.CallPetKey then
 			if IsControlJustReleased(0, keys[Config.TriggerKeys.CallPet]) then
-				pressLeft = GetGameTimer()
-				pressTime = pressTime + 1
+				local callPetReleaseTime = GetGameTimer()
+				local callPetPressCount = 1
 			end
-	
-			if pressLeft ~= nil and (pressLeft + 500) < GetGameTimer() and pressTime > 0 and pressTime < 1 then
-				pressTime = 0
+
+			if callPetReleaseTime and (callPetReleaseTime + 500) < GetGameTimer() and callPetPressCount > 0 and callPetPressCount < 1 then
+				callPetPressCount = 0
 			end
-	
-			if pressTime == 1 then
+
+			if callPetPressCount == 1 then
 				TriggerServerEvent('rdn_companions:loaddog')
-				pressTime = 0
+				callPetPressCount = 0
 			end
 		end
 
-		Citizen.Wait(waitTime)
+		Citizen.Wait(shopWaitTime)
 	end
 end)
 
@@ -264,7 +298,8 @@ Citizen.CreateThread(function()
 					end
 				end
 				if not notifyHungry and Config.NotifyWhenHungry then
-					 TriggerEvent( 'UI:DrawNotification', _U('Hungry'))		
+					 --TriggerEvent( 'UI:DrawNotification', _U('Hungry'))	
+					 TriggerEvent('redem_roleplay:Tip', _U('Hungry'), 4000)
 					notifyHungry = true		
 				end
 			end
@@ -277,7 +312,8 @@ Citizen.CreateThread(function()
 			
 			if currentPetPed and IsEntityDead(currentPetPed) then
 				recentlySpawned = Config.PetAttributes.DeathCooldown
-				ShowNotification( _U('PetDead') )	
+				--ShowNotification( _U('PetDead') )	
+				TriggerEvent('redem_roleplay:Tip', _U('PetDead'), 4000)
 				Wait(3000)
 				DeleteEntity(currentPetPed)
 				currentPetPed = nil			
@@ -312,7 +348,8 @@ Citizen.CreateThread(function()
 					TriggerServerEvent('rdn_companions:feedPet', petXP)
 					else
 					local timeLeft = SecondsToClock(Config.FeedInterval - FeedTimer)
-					TriggerEvent( 'UI:DrawNotification', "Your pet can be fed in: "..timeLeft)
+					--TriggerEvent( 'UI:DrawNotification', "Your pet can be fed in: "..timeLeft)
+					TriggerEvent('redem_roleplay:Tip', "Your pet can be fed in: "..timeLeft, 4000)
 				   end
 				   Wait(2000)
                 end
@@ -334,11 +371,13 @@ Citizen.CreateThread(function()
 			end		
 			if PromptHasStandardModeCompleted(HuntModePrompt[entity]) then
 					if not HuntMode then
-						TriggerEvent( 'UI:DrawNotification', "Your pet is ready to retrieve")
+						--TriggerEvent( 'UI:DrawNotification', "Your pet is ready to retrieve")
+						TriggerEvent('redem_roleplay:Tip', "Your pet is ready to retrieve", 4000)
 						HuntMode = true
 					else
 					HuntMode = false
-					TriggerEvent( 'UI:DrawNotification', "Your pet will not retrieve")
+					--TriggerEvent( 'UI:DrawNotification', "Your pet will not retrieve")
+					TriggerEvent('redem_roleplay:Tip', "Your pet will not retrieve", 4000)
 					end					
 			end			
 			if Config.AttackCommand and currentPetPed then
@@ -401,7 +440,8 @@ function DogEatAnimation()
             waiting = waiting + 100
             Citizen.Wait(100)
             if waiting > 5000 then
-			  TriggerEvent( 'UI:DrawNotification', "You broke the animation, Relocate")
+			    --TriggerEvent( 'UI:DrawNotification', "You broke the animation, Relocate")
+				TriggerEvent('redem_roleplay:Tip', "You broke the animation, Relocate", 4000)
                 break
             end      
         end
@@ -419,7 +459,8 @@ function DogSitAnimation()
             waiting = waiting + 100
             Citizen.Wait(100)
             if waiting > 5000 then
-               TriggerEvent( 'UI:DrawNotification', "You broke the animation, Relocate")
+                --TriggerEvent( 'UI:DrawNotification', "You broke the animation, Relocate")
+				TriggerEvent('redem_roleplay:Tip', "You broke the animation, Relocate", 4000)
                 break
             end      
         end
@@ -528,7 +569,8 @@ RegisterNetEvent('rdn_companions:removedog')
 AddEventHandler('rdn_companions:removedog', function (args)
 	if currentPetPed then
 		DeleteEntity(currentPetPed)
-		ShowNotification(_U('ReleasePet'))
+		TriggerEvent('redem_roleplay:Tip', _U('ReplacePet'), 4000)
+		--ShowNotification(_U('ReleasePet'))
 	end
 end)
 
@@ -537,11 +579,12 @@ AddEventHandler('rdn_companions:putaway', function (args)
 	if currentPetPed then
 		DeleteEntity(currentPetPed)
 		currentPetPed = nil
-		ShowNotification(_U('PetAway'))
+		--ShowNotification(_U('PetAway'))
+		TriggerEvent('redem_roleplay:Tip', _U('PetAway'), 4000)
 	end
 end)
 
-RegisterCommand("petgonder", function(source, args, rawCommand) --  COMMAND
+RegisterCommand("putaway", function(source, args, rawCommand) --  COMMAND
     local _source = source
     local ped = PlayerPedId()
 	TriggerEvent('rdn_companions:putaway')
@@ -549,11 +592,11 @@ RegisterCommand("petgonder", function(source, args, rawCommand) --  COMMAND
 
 end)
 
-RegisterCommand("petcagir", function(source, args, rawCommand) --  COMMAND
+RegisterCommand("calldog", function(source, args, rawCommand) --  COMMAND
     local _source = source
     local ped = PlayerPedId()
 	TriggerServerEvent('rdn_companions:loaddog')
-
+	--TriggerEvent('rdn_companions:spawndog')
 
 end)
 
@@ -720,7 +763,8 @@ function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, issh
 		followOwner(currentPetPed, player, isshop)
 	
 		if isdead and Config.PetAttributes.Invincible == false then
-			ShowNotification( _U('petHealed') )
+			--ShowNotification( _U('petHealed') )
+			TriggerEvent('redem_roleplay:Tip', _U('petHealed'), 4000)
 		end
 	end
 end
@@ -754,7 +798,8 @@ AddEventHandler('rdn_companions:spawndog', function (dog,skin,isInShop,xp,canTra
 	if recentlySpawned <= 0 then
 		recentlySpawned = Config.PetAttributes.SpawnLimiter
 	else
-		ShowNotification( _U('SpawnLimiter') )
+		--ShowNotification( _U('SpawnLimiter') )
+		TriggerEvent('redem_roleplay:Tip', _U('SpawnLimiter'), 4000)
 		return
 	end
 	
